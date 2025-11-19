@@ -2,7 +2,7 @@ package com.supermercado.controller;
 
 import com.supermercado.dao.ProdutoDAO;
 import com.supermercado.model.Produto;
-
+import java.sql.SQLException;
 import java.util.List;
 
 public class ProdutoController {
@@ -13,30 +13,46 @@ public class ProdutoController {
         this.produtoDAO = produtoDAO;
     }
 
-    public boolean cadastrarProduto(String nome, double preco, int quantidade) {
+    public void cadastrarProduto(String nome, double preco, int quantidade) {
         if (nome == null || nome.trim().isEmpty() || preco < 0 || quantidade < 0) {
-            return false;
+            throw new IllegalArgumentException("Dados do produto inválidos.");
         }
-        Produto produto = new Produto(0, nome, preco, quantidade);
-        return produtoDAO.salvar(produto);
+        try {
+            Produto produto = new Produto(0, nome, preco, quantidade);
+            produtoDAO.salvar(produto);
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao cadastrar produto: " + e.getMessage());
+        }
     }
 
-    public boolean editarProduto(int id, String nome, double preco, int quantidade) {
+    public void editarProduto(int id, String nome, double preco, int quantidade) {
         if (id <= 0 || nome == null || nome.trim().isEmpty() || preco < 0 || quantidade < 0) {
-            return false;
+            throw new IllegalArgumentException("Dados do produto inválidos.");
         }
-        Produto produto = new Produto(id, nome, preco, quantidade);
-        return produtoDAO.atualizar(produto);
+        try {
+            Produto produto = new Produto(id, nome, preco, quantidade);
+            produtoDAO.atualizar(produto);
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao editar produto: " + e.getMessage());
+        }
     }
 
-    public boolean removerProduto(int id) {
+    public void removerProduto(int id) {
         if (id <= 0) {
-            return false;
+            throw new IllegalArgumentException("ID do produto inválido.");
         }
-        return produtoDAO.remover(id);
+        try {
+            produtoDAO.remover(id);
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao remover produto: " + e.getMessage());
+        }
     }
 
     public List<Produto> listarProdutos() {
-        return produtoDAO.listarTodos();
+        try {
+            return produtoDAO.listarTodos();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao listar produtos: " + e.getMessage());
+        }
     }
 }

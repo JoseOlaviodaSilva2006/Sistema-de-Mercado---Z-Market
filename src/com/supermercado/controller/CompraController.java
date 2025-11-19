@@ -4,7 +4,7 @@ import com.supermercado.dao.ProdutoDAO;
 import com.supermercado.model.CarrinhoDeCompras;
 import com.supermercado.model.Produto;
 import com.supermercado.model.Usuario;
-
+import java.sql.SQLException;
 import java.util.Map;
 
 public class CompraController {
@@ -18,9 +18,13 @@ public class CompraController {
     }
 
     public void adicionarAoCarrinho(Produto produto, int quantidade) {
-        if (produto != null && quantidade > 0 && produto.getQuantidadeEstoque() >= quantidade) {
-            carrinho.adicionarItem(produto, quantidade);
+        if (produto == null || quantidade <= 0) {
+            throw new IllegalArgumentException("Produto ou quantidade inválida.");
         }
+        if (produto.getQuantidadeEstoque() < quantidade) {
+            throw new IllegalArgumentException("Quantidade solicitada maior que o estoque disponível.");
+        }
+        carrinho.adicionarItem(produto, quantidade);
     }
     
     public void removerDoCarrinho(Produto produto) {
@@ -31,26 +35,30 @@ public class CompraController {
         return carrinho;
     }
 
-    public boolean finalizarCompra() {
+    public void finalizarCompra() {
         Map<Produto, Integer> itens = carrinho.getItens();
         if (itens.isEmpty()) {
-            return false;
+            throw new IllegalStateException("O carrinho está vazio.");
         }
 
-        for (Map.Entry<Produto, Integer> entry : itens.entrySet()) {
-            Produto produto = entry.getKey();
-            int quantidadeComprada = entry.getValue();
-            
-            if(produto.getQuantidadeEstoque() < quantidadeComprada) {
-                return false; 
+        try {
+            for (Map.Entry<Produto, Integer> entry : itens.entrySet()) {
+                Produto produto = entry.getKey();
+                int quantidadeComprada = entry.getValue();
+                
+                // Re-valida o estoque antes de confirmar a transação
+                if(produto.getQuantidadeEstoque() < quantidadeComprada) {
+                    throw new IllegalStateException("Estoque insuficiente para o produto: " + produto.getNome());
+                }
+                
+                produto.setQuantidadeEstoque(produto.getQuantidadeEstoque() - quantidadeComprada);
+                produtoDAO.atualizar(produto);
             }
             
-            produto.setQuantidadeEstoque(produto.getQuantidadeEstoque() - quantidadeComprada);
-            produtoDAO.atualizar(produto);
+            carrinho.limparCarrinho();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao finalizar a compra e atualizar o estoque: " + e.getMessage());
         }
-        
-        carrinho.limparCarrinho();
-        return true;
     }
 
     public String gerarNotaFiscal(Usuario usuario) {

@@ -2,6 +2,7 @@ package com.supermercado.controller;
 
 import com.supermercado.dao.UsuarioDAO;
 import com.supermercado.model.Usuario;
+import java.sql.SQLException;
 
 public class UsuarioController {
 
@@ -11,16 +12,22 @@ public class UsuarioController {
         this.usuarioDAO = usuarioDAO;
     }
 
-    public boolean cadastrarUsuario(String nome, String cpf, boolean isAdmin) {
+    public void cadastrarUsuario(String nome, String cpf, boolean isAdmin) {
         if (nome == null || nome.trim().isEmpty() || cpf == null || cpf.trim().isEmpty()) {
-            return false;
+            throw new IllegalArgumentException("Nome e CPF não podem ser vazios.");
         }
         
-        if (usuarioDAO.buscarPorCpf(cpf) != null) {
-            return false;
+        // Validação simples do formato do CPF
+        if (!cpf.matches("\\d{11}")) {
+            throw new IllegalArgumentException("CPF inválido. Deve conter 11 dígitos numéricos.");
         }
 
-        Usuario novoUsuario = new Usuario(nome, cpf, isAdmin);
-        return usuarioDAO.salvar(novoUsuario);
+        try {
+            Usuario novoUsuario = new Usuario(nome, cpf, isAdmin);
+            usuarioDAO.salvar(novoUsuario);
+        } catch (SQLException e) {
+            // Relança a exceção para ser tratada pela View
+            throw new RuntimeException(e.getMessage());
+        }
     }
 }

@@ -3,22 +3,20 @@ package com.supermercado.util;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.io.File; // Importar File para usar File.separator
 
 public class ConexaoDB {
 
-    // URL correta para o banco de dados do nosso projeto
-    private static final String URL = "jdbc:mysql://localhost:3306/supermercado?useSSL=false&serverTimezone=UTC";
-    private static final String USER = "root";
-    private static final String PASSWORD = "admin"; // Lembre-se de usar sua senha correta aqui
+    // Caminho absoluto para o arquivo do banco de dados dentro do diretório do projeto
+    private static final String DB_FILE_PATH = System.getProperty("user.dir") + File.separator + "supermercado.db";
+    private static final String URL = "jdbc:sqlite:" + DB_FILE_PATH;
 
     public static Connection getConnection() {
-        Connection conn = null;
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            conn = DriverManager.getConnection(URL, USER, PASSWORD);
+            Class.forName("org.sqlite.JDBC");
+            return DriverManager.getConnection(URL);
         } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Erro ao conectar ao banco de dados: " + e.getMessage(), e);
         }
-        return conn;
     }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 
 public class ProdutoDAO {
 
-    public boolean salvar(Produto produto) {
+    public void salvar(Produto produto) throws SQLException {
         String sql = "INSERT INTO produtos (nome, preco, quantidade_estoque) VALUES (?, ?, ?)";
         try (Connection conn = ConexaoDB.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -22,14 +22,11 @@ public class ProdutoDAO {
             ps.setDouble(2, produto.getPreco());
             ps.setInt(3, produto.getQuantidadeEstoque());
             
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            ps.executeUpdate();
         }
     }
 
-    public boolean atualizar(Produto produto) {
+    public void atualizar(Produto produto) throws SQLException {
         String sql = "UPDATE produtos SET nome = ?, preco = ?, quantidade_estoque = ? WHERE id = ?";
         try (Connection conn = ConexaoDB.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -39,28 +36,22 @@ public class ProdutoDAO {
             ps.setInt(3, produto.getQuantidadeEstoque());
             ps.setInt(4, produto.getId());
             
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            ps.executeUpdate();
         }
     }
 
-    public boolean remover(int id) {
+    public void remover(int id) throws SQLException {
         String sql = "DELETE FROM produtos WHERE id = ?";
         try (Connection conn = ConexaoDB.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setInt(1, id);
             
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            ps.executeUpdate();
         }
     }
 
-    public List<Produto> listarTodos() {
+    public List<Produto> listarTodos() throws SQLException {
         List<Produto> produtos = new ArrayList<>();
         String sql = "SELECT * FROM produtos ORDER BY nome";
         try (Connection conn = ConexaoDB.getConnection();
@@ -74,8 +65,6 @@ public class ProdutoDAO {
                 int quantidadeEstoque = rs.getInt("quantidade_estoque");
                 produtos.add(new Produto(id, nome, preco, quantidadeEstoque));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return produtos;
     }

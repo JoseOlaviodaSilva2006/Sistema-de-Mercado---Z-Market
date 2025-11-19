@@ -10,7 +10,12 @@ import java.sql.SQLException;
 
 public class UsuarioDAO {
 
-    public boolean salvar(Usuario usuario) {
+    public void salvar(Usuario usuario) throws SQLException {
+        // Primeiro, verifica se o CPF já existe
+        if (buscarPorCpf(usuario.getCpf()) != null) {
+            throw new SQLException("Já existe um usuário cadastrado com este CPF.");
+        }
+
         String sql = "INSERT INTO usuarios (nome, cpf, is_admin) VALUES (?, ?, ?)";
         try (Connection conn = ConexaoDB.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -19,14 +24,11 @@ public class UsuarioDAO {
             ps.setString(2, usuario.getCpf());
             ps.setBoolean(3, usuario.isAdmin());
             
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            ps.executeUpdate();
         }
     }
 
-    public Usuario buscarPorCpf(String cpf) {
+    public Usuario buscarPorCpf(String cpf) throws SQLException {
         String sql = "SELECT * FROM usuarios WHERE cpf = ?";
         try (Connection conn = ConexaoDB.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -39,8 +41,6 @@ public class UsuarioDAO {
                 boolean isAdmin = rs.getBoolean("is_admin");
                 return new Usuario(nome, cpf, isAdmin);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }

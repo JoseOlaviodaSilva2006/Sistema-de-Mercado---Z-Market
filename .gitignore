@@ -1,0 +1,22 @@
+# Compiled output
+/out/
+/bin/
+
+# Packaged JAR
+*.jar
+
+# Database files
+*.db
+*.db-journal
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS generated files
+.DS_Store
+Thumbs.db
