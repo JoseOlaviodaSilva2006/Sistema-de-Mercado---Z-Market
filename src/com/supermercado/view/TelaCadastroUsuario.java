@@ -1,11 +1,10 @@
 package com.supermercado.view;
 
 import com.supermercado.controller.UsuarioController;
-import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.MaskFormatter;
+import java.awt.*;
 import java.text.ParseException;
 
 public class TelaCadastroUsuario extends JDialog {
@@ -16,68 +15,89 @@ public class TelaCadastroUsuario extends JDialog {
     private JCheckBox adminCheckBox;
     private final JFrame owner;
 
+    // Definição da paleta de cores
+    private static final Color COR_FUNDO = new Color(245, 245, 245);
+    private static final Color COR_PRINCIPAL = new Color(0, 123, 255);
+    private static final Color COR_TEXTO = new Color(51, 51, 51);
+    private static final Color COR_BOTAO_SUCESSO = new Color(40, 167, 69);
+
     public TelaCadastroUsuario(JFrame owner, UsuarioController usuarioController) {
         super(owner, "Zé Market - Cadastro de Usuário", true);
         this.owner = owner;
         this.usuarioController = usuarioController;
 
-        // O JDialog modal já bloqueia a janela owner, não é preciso um listener complexo.
-        // A janela owner voltará a ter foco quando este dialog for fechado.
+        initComponents();
 
+        pack();
+        setLocationRelativeTo(owner);
+        setVisible(true);
+    }
+
+    private void initComponents() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBackground(COR_FUNDO);
+        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Linha 0: Nome
+        JLabel titleLabel = new JLabel("Cadastro de Novo Usuário");
+        titleLabel.setFont(new Font("Roboto", Font.BOLD, 24));
+        titleLabel.setForeground(COR_PRINCIPAL);
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.weightx = 0; // Rótulo não expande
-        panel.add(new JLabel("Nome:"), gbc);
-        
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(titleLabel, gbc);
+
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Linha 1: Nome
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        panel.add(createLabel("Nome:"), gbc);
         gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0; // Campo de texto expande
-        nomeField = new JTextField(20);
+        nomeField = createTextField(20);
         panel.add(nomeField, gbc);
 
-        // Linha 1: CPF
+        // Linha 2: CPF
+        gbc.gridy = 2;
         gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 0; // Rótulo não expande
-        panel.add(new JLabel("CPF:"), gbc);
-
+        panel.add(createLabel("CPF:"), gbc);
         gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.weightx = 1.0; // Campo de texto expande
         try {
             MaskFormatter cpfFormatter = new MaskFormatter("###.###.###-##");
             cpfFormatter.setPlaceholderCharacter('_');
             cpfField = new JFormattedTextField(cpfFormatter);
+            cpfField.setFont(new Font("Roboto", Font.PLAIN, 14));
+            cpfField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                new EmptyBorder(5, 10, 5, 10)
+            ));
         } catch (ParseException e) {
             cpfField = new JFormattedTextField(); // Fallback
         }
         panel.add(cpfField, gbc);
         
-        // Linha 2: Admin
+        // Linha 3: Admin
+        gbc.gridy = 3;
         gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.weightx = 0; // Rótulo não expande
-        panel.add(new JLabel("É Administrador?"), gbc);
-
+        panel.add(createLabel("É Administrador?"), gbc);
         gbc.gridx = 1;
-        gbc.gridy = 2;
-        gbc.weightx = 1.0; // Checkbox também pode expandir para preencher o espaço
         adminCheckBox = new JCheckBox();
+        adminCheckBox.setBackground(COR_FUNDO);
         panel.add(adminCheckBox, gbc);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        JButton cadastrarButton = new JButton("Cadastrar");
+        // Painel de botões
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        buttonPanel.setBackground(COR_FUNDO);
+        
+        JButton cadastrarButton = createButton("Cadastrar", COR_BOTAO_SUCESSO);
         cadastrarButton.addActionListener(e -> cadastrarUsuario());
         
-        JButton voltarButton = new JButton("Voltar");
-        voltarButton.addActionListener(e -> dispose()); // Apenas fecha o dialog
+        JButton voltarButton = createButton("Voltar", COR_TEXTO);
+        voltarButton.addActionListener(e -> dispose());
         
         buttonPanel.add(voltarButton);
         buttonPanel.add(cadastrarButton);
@@ -85,22 +105,45 @@ public class TelaCadastroUsuario extends JDialog {
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(panel, BorderLayout.CENTER);
         getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-        
-        pack();
-        setLocationRelativeTo(owner);
-        setVisible(true);
+    }
+    
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Roboto", Font.BOLD, 14));
+        label.setForeground(COR_TEXTO);
+        return label;
+    }
+
+    private JTextField createTextField(int columns) {
+        JTextField textField = new JTextField(columns);
+        textField.setFont(new Font("Roboto", Font.PLAIN, 14));
+        textField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            new EmptyBorder(5, 10, 5, 10)
+        ));
+        return textField;
+    }
+    
+    private JButton createButton(String text, Color color) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Roboto", Font.BOLD, 14));
+        button.setBackground(color);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(new EmptyBorder(10, 25, 10, 25));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
     }
 
     private void cadastrarUsuario() {
         String nome = nomeField.getText();
-        // Remove a máscara do CPF antes de enviar para o controller
         String cpf = cpfField.getText().replaceAll("[^0-9]", "");
         boolean isAdmin = adminCheckBox.isSelected();
 
         try {
             usuarioController.cadastrarUsuario(nome, cpf, isAdmin);
-            JOptionPane.showMessageDialog(this, "Usuário cadastrado com sucesso!");
-            dispose(); // Apenas fecha o dialog, a tela de login abaixo receberá o foco.
+            JOptionPane.showMessageDialog(this, "Usuário cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            dispose();
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de Cadastro", JOptionPane.ERROR_MESSAGE);
         }

@@ -1,0 +1,17 @@
+src/com/supermercado/controller/UsuarioController.java
+src/com/supermercado/controller/ProdutoController.java
+src/com/supermercado/controller/LoginController.java
+src/com/supermercado/controller/CompraController.java
+src/com/supermercado/main/MainApp.java
+src/com/supermercado/util/SQLiteDatabaseSetup.java
+src/com/supermercado/util/ConexaoDB.java
+src/com/supermercado/util/ComponentScaler.java
+src/com/supermercado/dao/ProdutoDAO.java
+src/com/supermercado/dao/UsuarioDAO.java
+src/com/supermercado/model/Usuario.java
+src/com/supermercado/model/Produto.java
+src/com/supermercado/model/CarrinhoDeCompras.java
+src/com/supermercado/view/TelaCompraCliente.java
+src/com/supermercado/view/TelaProdutosAdmin.java
+src/com/supermercado/view/TelaCadastroUsuario.java
+src/com/supermercado/view/TelaLogin.java

@@ -21,8 +21,9 @@ public class CompraController {
         if (produto == null || quantidade <= 0) {
             throw new IllegalArgumentException("Produto ou quantidade inválida.");
         }
-        if (produto.getQuantidadeEstoque() < quantidade) {
-            throw new IllegalArgumentException("Quantidade solicitada maior que o estoque disponível.");
+        int quantidadeNoCarrinho = carrinho.getItens().getOrDefault(produto, 0);
+        if (produto.getQuantidadeEstoque() < quantidadeNoCarrinho + quantidade) {
+            throw new IllegalArgumentException("Estoque insuficiente. Você já tem " + quantidadeNoCarrinho + " no carrinho e o estoque é de " + produto.getQuantidadeEstoque() + ".");
         }
         carrinho.adicionarItem(produto, quantidade);
     }

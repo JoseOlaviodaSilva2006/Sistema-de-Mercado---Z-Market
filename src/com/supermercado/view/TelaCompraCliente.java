@@ -7,8 +7,11 @@ import com.supermercado.dao.ProdutoDAO;
 import com.supermercado.model.Produto;
 import com.supermercado.model.Usuario;
 import com.supermercado.util.ComponentScaler;
+
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +23,15 @@ public class TelaCompraCliente extends JFrame {
     private JTable tabelaProdutos, tabelaCarrinho;
     private DefaultTableModel modelProdutos, modelCarrinho;
     private JLabel totalLabel;
+    private JTextField quantidadeField;
+
+    // Definição da paleta de cores
+    private static final Color COR_FUNDO = new Color(245, 245, 245); // Cinza claro
+    private static final Color COR_PRINCIPAL = new Color(0, 123, 255); // Azul
+    private static final Color COR_SECUNDARIA = new Color(231, 241, 255); // Azul claro
+    private static final Color COR_TEXTO = new Color(51, 51, 51); // Cinza escuro
+    private static final Color COR_BOTAO_SUCESSO = new Color(40, 167, 69); // Verde
+    private static final Color COR_BOTAO_PERIGO = new Color(220, 53, 69); // Vermelho
 
     public TelaCompraCliente() {
         ProdutoDAO produtoDAO = new ProdutoDAO();
@@ -27,7 +39,7 @@ public class TelaCompraCliente extends JFrame {
         this.compraController = new CompraController(produtoDAO);
         
         setTitle("Zé Market - Compras - Cliente: " + LoginController.getUsuarioLogado().getNome());
-        setMinimumSize(new Dimension(1000, 700));
+        setMinimumSize(new Dimension(1200, 800));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
@@ -38,16 +50,20 @@ public class TelaCompraCliente extends JFrame {
 
     private void initComponents() {
         // Painel principal
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
+        mainPanel.setBackground(COR_FUNDO);
+        mainPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
         
         JLabel titleLabel = new JLabel("Bem-vindo ao Zé Market!", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setFont(new Font("Roboto", Font.BOLD, 32));
+        titleLabel.setForeground(COR_TEXTO);
         mainPanel.add(titleLabel, BorderLayout.NORTH);
         
         // Split Pane para dividir produtos e carrinho
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setResizeWeight(0.6);
+        splitPane.setResizeWeight(0.65);
+        splitPane.setDividerSize(10);
+        splitPane.setBorder(null);
 
         splitPane.setLeftComponent(criarPainelProdutos());
         splitPane.setRightComponent(criarPainelCarrinho());
@@ -55,306 +71,251 @@ public class TelaCompraCliente extends JFrame {
         mainPanel.add(splitPane, BorderLayout.CENTER);
         add(mainPanel);
 
-        // Habilita o redimensionamento proporcional dos componentes
-        new com.supermercado.util.ComponentScaler(this).enableScaling();
+        new ComponentScaler(this).enableScaling();
     }
     
     private JPanel criarPainelProdutos() {
-        JPanel painel = new JPanel(new BorderLayout(5, 5));
-        painel.setBorder(BorderFactory.createTitledBorder("Produtos Disponíveis"));
+        JPanel painel = new JPanel(new BorderLayout(10, 10));
+        painel.setBackground(COR_FUNDO);
+        painel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(COR_PRINCIPAL, 1), "Produtos Disponíveis", 0, 0, new Font("Roboto", Font.BOLD, 18), COR_PRINCIPAL));
         
         modelProdutos = new DefaultTableModel(new Object[]{"ID", "Nome", "Preço", "Estoque"}, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
         tabelaProdutos = new JTable(modelProdutos);
-        tabelaProdutos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        configurarTabela(tabelaProdutos);
         painel.add(new JScrollPane(tabelaProdutos), BorderLayout.CENTER);
         
-        JButton adicionarButton = new JButton("Adicionar ao Carrinho");
+        // Painel para adicionar ao carrinho
+        JPanel painelAdicionar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        painelAdicionar.setBackground(COR_FUNDO);
+        
+        quantidadeField = new JTextField("1", 5);
+        quantidadeField.setPreferredSize(new Dimension(80, 30));
+        
+        JButton adicionarButton = criarBotao("Adicionar ao Carrinho", COR_PRINCIPAL, "resources/icons/add.png");
         adicionarButton.addActionListener(e -> adicionarAoCarrinho());
-        painel.add(adicionarButton, BorderLayout.SOUTH);
+        
+        painelAdicionar.add(new JLabel("Qtd:"));
+        painelAdicionar.add(quantidadeField);
+        painelAdicionar.add(adicionarButton);
+        
+        painel.add(painelAdicionar, BorderLayout.SOUTH);
         
         return painel;
     }
     
-        private JPanel criarPainelCarrinho() {
-    
-            JPanel painel = new JPanel(new BorderLayout(5, 5));
-    
-            painel.setBorder(BorderFactory.createTitledBorder("Meu Carrinho"));
-    
-            
-    
-            modelCarrinho = new DefaultTableModel(new Object[]{"Produto", "Qtd", "Subtotal"}, 0) {
-    
-                @Override public boolean isCellEditable(int row, int column) { return false; }
-    
-            };
-    
-            tabelaCarrinho = new JTable(modelCarrinho);
-    
-            tabelaCarrinho.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    
-            painel.add(new JScrollPane(tabelaCarrinho), BorderLayout.CENTER);
-    
-            
-    
-            // Painel inferior do carrinho
-    
-            JPanel painelSul = new JPanel(new BorderLayout());
-    
-            totalLabel = new JLabel("Total: R$ 0.00");
-    
-            totalLabel.setFont(new Font("Serif", Font.BOLD, 18));
-    
-            totalLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-    
-            painelSul.add(totalLabel, BorderLayout.WEST); // Alterado para WEST
-    
-            
-    
-            JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    
-            botoes.add(new JButton("Remover") {{ addActionListener(e -> removerDoCarrinho()); }});
-    
-            botoes.add(new JButton("Finalizar Compra") {{ addActionListener(e -> finalizarCompra()); }});
-    
-            botoes.add(new JSeparator(SwingConstants.VERTICAL));
-    
-            botoes.add(new JButton("Deslogar") {{ addActionListener(e -> deslogar()); }});
-    
-            
-    
-            painelSul.add(botoes, BorderLayout.EAST);
-    
-            painel.add(painelSul, BorderLayout.SOUTH);
-    
-            
-    
-            return painel;
-    
-        }
-    
-    
-    
-        private void atualizarTabelaProdutos() {
-    
-            try {
-    
-                modelProdutos.setRowCount(0);
-    
-                List<Produto> produtos = produtoController.listarProdutos();
-    
-                for (Produto p : produtos) {
-    
-                    if (p.getQuantidadeEstoque() > 0) {
-    
-                        modelProdutos.addRow(new Object[]{p.getId(), p.getNome(), p.getPreco(), p.getQuantidadeEstoque()});
-    
-                    }
-    
-                }
-    
-            } catch (RuntimeException e) {
-    
-                JOptionPane.showMessageDialog(this, "Erro ao carregar produtos: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-    
-            }
-    
-        }
-    
-    
-    
-        private void atualizarTabelaCarrinho() {
-    
-            modelCarrinho.setRowCount(0);
-    
-            Map<Produto, Integer> itens = compraController.getCarrinho().getItens();
-    
-            for (Map.Entry<Produto, Integer> entry : itens.entrySet()) {
-    
-                Produto p = entry.getKey();
-    
-                int qtd = entry.getValue();
-    
-                modelCarrinho.addRow(new Object[]{p.getNome(), qtd, p.getPreco() * qtd});
-    
-            }
-    
-            totalLabel.setText(String.format("Total: R$ %.2f", compraController.getCarrinho().calcularTotal()));
-    
-        }
-    
+    private JPanel criarPainelCarrinho() {
+        JPanel painel = new JPanel(new BorderLayout(10, 10));
+        painel.setBackground(COR_FUNDO);
+        painel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(COR_BOTAO_SUCESSO, 1), "Meu Carrinho", 0, 0, new Font("Roboto", Font.BOLD, 18), COR_BOTAO_SUCESSO));
         
-    
-        private void adicionarAoCarrinho() {
-    
-            int selectedRow = tabelaProdutos.getSelectedRow();
-    
-            if (selectedRow == -1) {
-    
-                JOptionPane.showMessageDialog(this, "Selecione um produto para adicionar.", "Aviso", JOptionPane.WARNING_MESSAGE);
-    
-                return;
-    
-            }
-    
-            
-    
-            try {
-    
-                int id = (int) modelProdutos.getValueAt(selectedRow, 0);
-    
-                Produto produto = produtoController.listarProdutos().stream().filter(p -> p.getId() == id).findFirst().orElse(null);
-    
-    
-    
-                if (produto == null) {
-    
-                    JOptionPane.showMessageDialog(this, "Produto não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
-    
-                    return;
-    
-                }
-    
-    
-    
-                String qtdStr = JOptionPane.showInputDialog(this, "Digite a quantidade:", "Adicionar ao Carrinho", JOptionPane.PLAIN_MESSAGE);
-    
-                if (qtdStr == null) return; // Cancelado pelo usuário
-    
-    
-    
-                int quantidade = Integer.parseInt(qtdStr);
-    
-                compraController.adicionarAoCarrinho(produto, quantidade);
-    
-                atualizarTabelaCarrinho();
-    
-    
-    
-            } catch (NumberFormatException ex) {
-    
-                JOptionPane.showMessageDialog(this, "Por favor, digite um número válido.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
-    
-            } catch (RuntimeException ex) {
-    
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-    
-            }
-    
-        }
-    
+        modelCarrinho = new DefaultTableModel(new Object[]{"Produto", "Qtd", "Subtotal"}, 0) {
+            @Override public boolean isCellEditable(int row, int column) { return false; }
+        };
+        tabelaCarrinho = new JTable(modelCarrinho);
+        configurarTabela(tabelaCarrinho);
+        painel.add(new JScrollPane(tabelaCarrinho), BorderLayout.CENTER);
         
-    
-        private void removerDoCarrinho() {
-    
-            int selectedRow = tabelaCarrinho.getSelectedRow();
-    
-            if (selectedRow == -1) {
-    
-                JOptionPane.showMessageDialog(this, "Selecione um item do carrinho para remover.", "Aviso", JOptionPane.WARNING_MESSAGE);
-    
-                return;
-    
-            }
-    
-            
-    
-            String nomeProduto = (String) modelCarrinho.getValueAt(selectedRow, 0);
-    
-            
-    
-            compraController.getCarrinho().getItens().keySet().stream()
-    
-                .filter(p -> p.getNome().equals(nomeProduto))
-    
-                .findFirst()
-    
-                .ifPresent(produtoParaRemover -> {
-    
-                    compraController.removerDoCarrinho(produtoParaRemover);
-    
-                    atualizarTabelaCarrinho();
-    
-                });
-    
-        }
-    
-    
-    
-        private void finalizarCompra() {
-    
-            if (compraController.getCarrinho().getItens().isEmpty()) {
-    
-                JOptionPane.showMessageDialog(this, "O carrinho está vazio.", "Aviso", JOptionPane.WARNING_MESSAGE);
-    
-                return;
-    
-            }
-    
-    
-    
-            double total = compraController.getCarrinho().calcularTotal();
-    
-            String mensagem = String.format("Deseja finalizar a compra no valor de R$ %.2f?", total);
-    
-            int confirm = JOptionPane.showConfirmDialog(this, mensagem, "Confirmação", JOptionPane.YES_NO_OPTION);
-    
-    
-    
-            if (confirm == JOptionPane.YES_OPTION) {
-    
-                try {
-    
-                    Usuario usuarioLogado = LoginController.getUsuarioLogado();
-    
-                    String notaFiscal = compraController.gerarNotaFiscal(usuarioLogado);
-    
-                    
-    
-                    compraController.finalizarCompra();
-    
-    
-    
-                    JTextArea textArea = new JTextArea(notaFiscal);
-    
-                    textArea.setEditable(false);
-    
-                    JScrollPane scrollPane = new JScrollPane(textArea);
-    
-                    scrollPane.setPreferredSize(new Dimension(400, 300));
-    
-                    JOptionPane.showMessageDialog(this, scrollPane, "Compra Realizada com Sucesso!", JOptionPane.INFORMATION_MESSAGE);
-    
-                    
-    
-                    atualizarTabelaProdutos();
-    
-                    atualizarTabelaCarrinho();
-    
-                } catch (RuntimeException ex) {
-    
-                    JOptionPane.showMessageDialog(this, "Não foi possível finalizar a compra.\n" + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-    
-                    atualizarTabelaProdutos(); // Re-sincroniza o estoque
-    
-                }
-    
-            }
-    
-        }
-    
+        // Painel inferior do carrinho
+        JPanel painelSul = new JPanel(new BorderLayout(10, 0));
+        painelSul.setBackground(COR_FUNDO);
+        painelSul.setBorder(new EmptyBorder(10, 10, 10, 10));
         
-    
-        private void deslogar() {
-    
-            dispose();
-    
-            new TelaLogin();
-    
-        }
-    
+        totalLabel = new JLabel("Total: R$ 0.00");
+        totalLabel.setFont(new Font("Roboto", Font.BOLD, 22));
+        totalLabel.setForeground(COR_TEXTO);
+        painelSul.add(totalLabel, BorderLayout.WEST);
+        
+        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        botoes.setBackground(COR_FUNDO);
+        
+        JButton removerButton = criarBotao("Remover", COR_BOTAO_PERIGO, "resources/icons/remove.png");
+        removerButton.addActionListener(e -> removerDoCarrinho());
+        
+        JButton finalizarButton = criarBotao("Finalizar Compra", COR_BOTAO_SUCESSO, "resources/icons/finish.png");
+        finalizarButton.addActionListener(e -> finalizarCompra());
+
+        JButton deslogarButton = criarBotao("Deslogar", COR_TEXTO, "resources/icons/logout.png");
+        deslogarButton.addActionListener(e -> deslogar());
+        
+        botoes.add(removerButton);
+        botoes.add(finalizarButton);
+        botoes.add(new JSeparator(SwingConstants.VERTICAL));
+        botoes.add(deslogarButton);
+        
+        painelSul.add(botoes, BorderLayout.EAST);
+        painel.add(painelSul, BorderLayout.SOUTH);
+        
+        return painel;
+    }
+
+    private void configurarTabela(JTable table) {
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setRowHeight(30);
+        table.setFont(new Font("Roboto", Font.PLAIN, 14));
+        table.setGridColor(new Color(220, 220, 220));
+        table.setShowGrid(true);
+        
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("Roboto", Font.BOLD, 16));
+        header.setBackground(COR_SECUNDARIA);
+        header.setForeground(COR_PRINCIPAL);
+        header.setBorder(BorderFactory.createLineBorder(COR_PRINCIPAL));
+        
+        table.setSelectionBackground(COR_PRINCIPAL);
+        table.setSelectionForeground(Color.WHITE);
     }
     
+    private JButton criarBotao(String texto, Color cor, String iconPath) {
+        JButton button = new JButton(texto);
+        button.setFont(new Font("Roboto", Font.BOLD, 14));
+        button.setBackground(cor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(new EmptyBorder(10, 20, 10, 20));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Tenta carregar o ícone
+        try {
+            ImageIcon icon = new ImageIcon(new ImageIcon(getClass().getResource(iconPath))
+                .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+            button.setIcon(icon);
+        } catch (Exception e) {
+            System.err.println("Ícone não encontrado: " + iconPath);
+        }
+        
+        return button;
+    }
     
+    private void atualizarTabelaProdutos() {
+        try {
+            modelProdutos.setRowCount(0);
+            List<Produto> produtos = produtoController.listarProdutos();
+            for (Produto p : produtos) {
+                if (p.getQuantidadeEstoque() > 0) {
+                    modelProdutos.addRow(new Object[]{p.getId(), p.getNome(), String.format("R$ %.2f", p.getPreco()), p.getQuantidadeEstoque()});
+                }
+            }
+        } catch (RuntimeException e) {
+            exibirErro("Erro ao carregar produtos: " + e.getMessage());
+        }
+    }
+    
+    private void atualizarTabelaCarrinho() {
+        modelCarrinho.setRowCount(0);
+        Map<Produto, Integer> itens = compraController.getCarrinho().getItens();
+        for (Map.Entry<Produto, Integer> entry : itens.entrySet()) {
+            Produto p = entry.getKey();
+            int qtd = entry.getValue();
+            modelCarrinho.addRow(new Object[]{p.getNome(), qtd, String.format("R$ %.2f", p.getPreco() * qtd)});
+        }
+        totalLabel.setText(String.format("Total: R$ %.2f", compraController.getCarrinho().calcularTotal()));
+    }
+    
+    private void adicionarAoCarrinho() {
+        int selectedRow = tabelaProdutos.getSelectedRow();
+        if (selectedRow == -1) {
+            exibirAviso("Selecione um produto para adicionar.");
+            return;
+        }
+
+        try {
+            String text = quantidadeField.getText();
+            int quantidade = Integer.parseInt(text);
+
+            if (quantidade <= 0) {
+                exibirAviso("A quantidade deve ser maior que zero.");
+                return;
+            }
+
+            int id = (int) tabelaProdutos.getValueAt(selectedRow, 0);
+            Produto produto = produtoController.listarProdutos().stream().filter(p -> p.getId() == id).findFirst().orElse(null);
+            
+            if (produto == null) {
+                exibirErro("Produto não encontrado.");
+                return;
+            }
+
+            compraController.adicionarAoCarrinho(produto, quantidade);
+            atualizarTabelaCarrinho();
+            quantidadeField.setText("1"); // Reseta o campo
+
+        } catch (NumberFormatException e) {
+            exibirErro("A quantidade inserida é inválida. Por favor, insira um número válido.");
+        } catch (RuntimeException ex) {
+            exibirErro(ex.getMessage());
+        }
+    }
+    
+    private void removerDoCarrinho() {
+        int selectedRow = tabelaCarrinho.getSelectedRow();
+        if (selectedRow == -1) {
+            exibirAviso("Selecione um item do carrinho para remover.");
+            return;
+        }
+        
+        int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja remover este item?", "Confirmação", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+        
+        String nomeProduto = (String) modelCarrinho.getValueAt(selectedRow, 0);
+        compraController.getCarrinho().getItens().keySet().stream()
+            .filter(p -> p.getNome().equals(nomeProduto))
+            .findFirst()
+            .ifPresent(produtoParaRemover -> {
+                compraController.removerDoCarrinho(produtoParaRemover);
+                atualizarTabelaCarrinho();
+            });
+    }
+    
+    private void finalizarCompra() {
+        if (compraController.getCarrinho().getItens().isEmpty()) {
+            exibirAviso("O carrinho está vazio.");
+            return;
+        }
+        
+        double total = compraController.getCarrinho().calcularTotal();
+        String mensagem = String.format("Deseja finalizar a compra no valor de R$ %.2f?", total);
+        int confirm = JOptionPane.showConfirmDialog(this, mensagem, "Confirmação de Compra", JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                Usuario usuarioLogado = LoginController.getUsuarioLogado();
+                String notaFiscal = compraController.gerarNotaFiscal(usuarioLogado);
+                compraController.finalizarCompra();
+                
+                JTextArea textArea = new JTextArea(notaFiscal);
+                textArea.setEditable(false);
+                textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+                JScrollPane scrollPane = new JScrollPane(textArea);
+                scrollPane.setPreferredSize(new Dimension(500, 400));
+                JOptionPane.showMessageDialog(this, scrollPane, "Compra Realizada com Sucesso!", JOptionPane.INFORMATION_MESSAGE);
+                
+                atualizarTabelaProdutos();
+                atualizarTabelaCarrinho();
+                
+            } catch (RuntimeException ex) {
+                exibirErro("Não foi possível finalizar a compra.\n" + ex.getMessage());
+                atualizarTabelaProdutos();
+            }
+        }
+    }
+    
+    private void deslogar() {
+        dispose();
+        new TelaLogin();
+    }
+    
+    // Métodos utilitários para feedback visual
+    private void exibirErro(String mensagem) {
+        JOptionPane.showMessageDialog(this, mensagem, "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+    
+    private void exibirAviso(String mensagem) {
+        JOptionPane.showMessageDialog(this, mensagem, "Aviso", JOptionPane.WARNING_MESSAGE);
+    }
+}
