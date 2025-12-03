@@ -22,11 +22,18 @@ public class UsuarioController {
             throw new IllegalArgumentException("CPF inválido. Deve conter 11 dígitos numéricos.");
         }
 
+        // # TRATAMENTO DE EXCEÇÃO (CONTROLLER)
+        // O controller tenta salvar o usuário através do DAO.
         try {
             Usuario novoUsuario = new Usuario(nome, cpf, isAdmin);
             usuarioDAO.salvar(novoUsuario);
+            
+        // Se o DAO lançar uma SQLException (ex: erro de conexão, CPF duplicado),
+        // o controller a captura.
         } catch (SQLException e) {
-            // Relança a exceção para ser tratada pela View
+            // Em vez de propagar a SQLException (que é uma exceção "checada"),
+            // o controller a "traduz" para uma RuntimeException (exceção "não checada").
+            // Isso simplifica o código na camada da View, que só precisa capturar RuntimeException.
             throw new RuntimeException(e.getMessage());
         }
     }

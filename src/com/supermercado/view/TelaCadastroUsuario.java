@@ -140,10 +140,14 @@ public class TelaCadastroUsuario extends JDialog {
         String cpf = cpfField.getText().replaceAll("[^0-9]", "");
         boolean isAdmin = adminCheckBox.isSelected();
 
+        // # TRATAMENTO DE EXCEÇÃO (VIEW)
+        // Captura erros de validação (ex: CPF inválido) ou de banco de dados (ex: CPF já existe)
+        // que vêm das camadas de controller e DAO.
         try {
             usuarioController.cadastrarUsuario(nome, cpf, isAdmin);
             JOptionPane.showMessageDialog(this, "Usuário cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             dispose();
+        // O erro é exibido ao usuário em uma caixa de diálogo.
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de Cadastro", JOptionPane.ERROR_MESSAGE);
         }

@@ -21,6 +21,8 @@ public class SQLiteDatabaseSetup {
                 + "quantidade_estoque INTEGER NOT NULL"
                 + ");";
 
+        // O "try-with-resources" garante que a conexão (conn) e o statement (stmt)
+        // sejam fechados automaticamente no final, evitando vazamento de recursos.
         try (Connection conn = ConexaoDB.getConnection();
              Statement stmt = conn.createStatement()) {
             // Cria a tabela de usuários
@@ -30,8 +32,13 @@ public class SQLiteDatabaseSetup {
             
             System.out.println("Tabelas criadas com sucesso (se não existiam).");
 
+        // # TRATAMENTO DE EXCEÇÃO (CAMADA DE DADOS / UTIL)
+        // O método ConexaoDB.getConnection() já pode lançar uma RuntimeException se a conexão falhar.
+        // Este 'catch' trata de erros que podem ocorrer durante a execução dos comandos SQL
+        // pela interface Statement (stmt.execute()), como um comando SQL malformado.
         } catch (SQLException e) {
-            // A exceção já é tratada em ConexaoDB, mas adicionamos um catch para o Statement
+            // Assim como em ConexaoDB, a exceção específica (SQLException) é convertida
+            // para uma RuntimeException genérica para simplificar o tratamento nas camadas superiores.
             throw new RuntimeException("Erro ao criar as tabelas: " + e.getMessage(), e);
         }
     }

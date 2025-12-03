@@ -37,6 +37,9 @@ public class TelaLogin extends JFrame {
         pack();
         setVisible(true);
 
+        // # PARTE RESPONSIVA
+        // A linha abaixo ativa a funcionalidade de responsividade para esta tela.
+        // Ela cria uma instância do ComponentScaler, que irá gerenciar o redimensionamento das fontes.
         new ComponentScaler(this).enableScaling();
     }
 
@@ -143,6 +146,9 @@ public class TelaLogin extends JFrame {
         String cpf = cpfField.getText().replaceAll("[^0-9]", "");
         String nome = nomeField.getText();
         
+        // # TRATAMENTO DE EXCEÇÃO (VIEW)
+        // Este bloco try-catch é a última barreira de proteção contra erros.
+        // Ele tenta executar a lógica de autenticação do controller.
         try {
             Usuario usuario = loginController.autenticar(cpf, nome);
             if (usuario != null) {
@@ -156,6 +162,8 @@ public class TelaLogin extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "CPF ou Nome inválidos.", "Erro de Login", JOptionPane.ERROR_MESSAGE);
             }
+        // Se qualquer erro (RuntimeException) ocorrer nas camadas inferiores (controller, DAO),
+        // ele será capturado aqui e exibido ao usuário em uma caixa de diálogo.
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de Login", JOptionPane.ERROR_MESSAGE);
         }

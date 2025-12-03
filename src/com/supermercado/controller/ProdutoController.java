@@ -17,6 +17,9 @@ public class ProdutoController {
         if (nome == null || nome.trim().isEmpty() || preco < 0 || quantidade < 0) {
             throw new IllegalArgumentException("Dados do produto inválidos.");
         }
+        // # TRATAMENTO DE EXCEÇÃO (CONTROLLER)
+        // O padrão se repete: o controller captura a exceção específica do banco (SQLException)
+        // e a transforma em uma exceção genérica (RuntimeException) para a View tratar.
         try {
             Produto produto = new Produto(0, nome, preco, quantidade);
             produtoDAO.salvar(produto);

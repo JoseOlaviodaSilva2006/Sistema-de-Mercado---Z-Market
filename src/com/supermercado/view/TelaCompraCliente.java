@@ -71,6 +71,8 @@ public class TelaCompraCliente extends JFrame {
         mainPanel.add(splitPane, BorderLayout.CENTER);
         add(mainPanel);
 
+        // # PARTE RESPONSIVA
+        // A linha abaixo ativa a funcionalidade de responsividade para esta tela.
         new ComponentScaler(this).enableScaling();
     }
     
@@ -178,19 +180,17 @@ public class TelaCompraCliente extends JFrame {
         button.setBorder(new EmptyBorder(10, 20, 10, 20));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Tenta carregar o ícone
-        try {
-            ImageIcon icon = new ImageIcon(new ImageIcon(getClass().getResource(iconPath))
-                .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
-            button.setIcon(icon);
-        } catch (Exception e) {
-            System.err.println("Ícone não encontrado: " + iconPath);
-        }
+        // A lógica para carregar ícones foi removida para evitar erros,
+        // pois os arquivos de imagem não foram encontrados no projeto.
+        // O parâmetro iconPath é mantido para não quebrar as chamadas do método,
+        // mas não é mais utilizado.
         
         return button;
     }
     
     private void atualizarTabelaProdutos() {
+        // # TRATAMENTO DE EXCEÇÃO (VIEW)
+        // Captura erros que podem ocorrer ao buscar a lista de produtos no banco de dados.
         try {
             modelProdutos.setRowCount(0);
             List<Produto> produtos = produtoController.listarProdutos();
@@ -222,6 +222,9 @@ public class TelaCompraCliente extends JFrame {
             return;
         }
 
+        // # TRATAMENTO DE EXCEÇÃO (VIEW)
+        // Captura erros de conversão de número (se o usuário digitar um texto em "Qtd")
+        // e também erros de regras de negócio (ex: estoque insuficiente) vindos do controller.
         try {
             String text = quantidadeField.getText();
             int quantidade = Integer.parseInt(text);
@@ -283,6 +286,9 @@ public class TelaCompraCliente extends JFrame {
         int confirm = JOptionPane.showConfirmDialog(this, mensagem, "Confirmação de Compra", JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
+            // # TRATAMENTO DE EXCEÇÃO (VIEW)
+            // Captura erros que podem acontecer durante a atualização do estoque no banco de dados.
+            // Por exemplo, se o estoque de um produto acabou enquanto o usuário ainda estava comprando.
             try {
                 Usuario usuarioLogado = LoginController.getUsuarioLogado();
                 String notaFiscal = compraController.gerarNotaFiscal(usuarioLogado);

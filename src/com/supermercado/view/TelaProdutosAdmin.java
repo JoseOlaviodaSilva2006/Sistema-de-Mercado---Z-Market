@@ -60,6 +60,8 @@ public class TelaProdutosAdmin extends JFrame {
         add(tablePanel, BorderLayout.CENTER);
         add(actionPanel, BorderLayout.SOUTH);
 
+        // # PARTE RESPONSIVA
+        // A linha abaixo ativa a funcionalidade de responsividade para esta tela.
         new ComponentScaler(this).enableScaling();
     }
 
@@ -180,6 +182,8 @@ public class TelaProdutosAdmin extends JFrame {
     }
     
     private void atualizarTabela() {
+        // # TRATAMENTO DE EXCEÇÃO (VIEW)
+        // Captura e exibe erros que possam ocorrer ao listar os produtos do banco de dados.
         try {
             tableModel.setRowCount(0);
             List<Produto> produtos = produtoController.listarProdutos();
@@ -213,6 +217,8 @@ public class TelaProdutosAdmin extends JFrame {
             exibirAviso("Todos os campos devem ser preenchidos.");
             return;
         }
+        // # TRATAMENTO DE EXCEÇÃO (VIEW)
+        // Captura erros de formato de número ou erros vindos do controller/DAO ao salvar.
         try {
             String nome = nomeField.getText();
             double preco = Double.parseDouble(precoField.getText().replace(",", "."));
@@ -236,6 +242,8 @@ public class TelaProdutosAdmin extends JFrame {
             exibirAviso("Selecione um produto para editar.");
             return;
         }
+        // # TRATAMENTO DE EXCEÇÃO (VIEW)
+        // Similar ao "adicionar", captura erros de formato e de banco de dados ao editar.
         try {
             int id = (int) tableModel.getValueAt(selectedRow, 0);
             String nome = nomeField.getText();
@@ -263,6 +271,8 @@ public class TelaProdutosAdmin extends JFrame {
         int id = (int) tableModel.getValueAt(selectedRow, 0);
         int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja remover este produto?", "Confirmação", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (confirm == JOptionPane.YES_OPTION) {
+            // # TRATAMENTO DE EXCEÇÃO (VIEW)
+            // Captura qualquer erro que possa ocorrer na camada de banco de dados ao remover o produto.
             try {
                 produtoController.removerProduto(id);
                 JOptionPane.showMessageDialog(this, "Produto removido com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
